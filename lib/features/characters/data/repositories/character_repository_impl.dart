@@ -1,24 +1,23 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/error/result.dart';
 import '../../domain/entities/character_entity.dart';
+import '../../domain/entities/characters_page.dart';
 import '../../domain/repositories/characters_repository.dart';
-import '../datasources/character_local_datasource.dart';
 import '../datasources/character_remote_datasource.dart';
-import '../models/character_model.dart';
 
 class CharactersRepositoryImpl implements CharactersRepository {
   final CharacterRemoteDatasource characterRemoteDatasource;
-  final CharacterLocalDatasource characterLocalDatasource;
 
-  CharactersRepositoryImpl({
-    required this.characterRemoteDatasource,
-    required this.characterLocalDatasource,
-  });
+  CharactersRepositoryImpl({required this.characterRemoteDatasource});
 
   @override
-  Future<Result<List<Character>>> getCharacters() async {
+  Future<Result<CharactersPage>> getCharacters({String? name, int page = 1}) async {
     try {
-      final characters = await characterRemoteDatasource.getCharacters();
-      return Success(characters);
+      final result = await characterRemoteDatasource.getCharacters(name: name, page: page);
+      return Success(result);
+    } on DioException catch (e) {
+      return Failure(_messageFor(e, 'No se pudieron cargar los personajes'));
     } catch (_) {
       return const Failure('No se pudieron cargar los personajes');
     }
@@ -29,30 +28,17 @@ class CharactersRepositoryImpl implements CharactersRepository {
     try {
       final character = await characterRemoteDatasource.getCharacterDetail(id);
       return Success(character);
+    } on DioException catch (e) {
+      return Failure(_messageFor(e, 'No se pudo cargar el personaje'));
     } catch (_) {
       return const Failure('No se pudo cargar el personaje');
     }
   }
 
-  @override
-  Future<Result<bool>> addCharacterToFavorite(Character character) async {
-    try {
-      final added = await characterLocalDatasource.addCharacterToFavorite(
-        CharacterModel.fromEntity(character),
-      );
-      return Success(added);
-    } catch (_) {
-      return const Failure('No se pudo agregar el personaje a favoritos');
+  String _messageFor(DioException error, String defaultMessage) {
+    if (error.response?.statusCode == 429) {
+      return 'Demasiadas solicitudes a la API. Espera un momento e intenta de nuevo.';
     }
-  }
-
-  @override
-  Future<Result<List<Character>>> getFavoriteCharacters() async {
-    try {
-      final characters = await characterLocalDatasource.getFavoriteCharacters();
-      return Success(characters);
-    } catch (_) {
-      return const Failure('No se pudieron cargar los favoritos');
-    }
+    return defaultMessage;
   }
 }

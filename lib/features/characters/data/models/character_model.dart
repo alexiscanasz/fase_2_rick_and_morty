@@ -27,26 +27,4 @@ class CharacterModel extends Character {
       ((json["results"] as List?) ?? const [])
           .map((character) => CharacterModel.fromJson(character))
           .toList();
-
-  factory CharacterModel.fromEntity(Character character) => CharacterModel(
-    id: character.id,
-    name: character.name,
-    status: character.status,
-    species: character.species,
-    gender: character.gender,
-    origin: character.origin,
-    location: character.location,
-    image: character.image,
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'status': status,
-    'species': species,
-    'gender': gender,
-    'origin': {'name': origin},
-    'location': {'name': location},
-    'image': image,
-  };
 }
