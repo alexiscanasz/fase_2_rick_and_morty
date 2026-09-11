@@ -1,16 +1,27 @@
-# portal_remoto_rick_and_morty_fase_2_ca_bloc
+# Portal Remoto — Fase 2
 
-A new Flutter project.
+App Flutter de la Fase 2 de la ruta de crecimiento: consume la [Rick and Morty API](https://rickandmortyapi.com/) para listar, buscar y ver el detalle de personajes.
 
-## Getting Started
+## Funcionalidad
 
-This project is a starting point for a Flutter application.
+- Listado de personajes obtenido desde `GET /api/character`.
+- Búsqueda remota por nombre (`?name=`) con debounce.
+- Detalle de personaje (`GET /api/character/{id}`) con su propio estado de carga/error.
+- Estados de carga, error (con reintento) y vacío (sin resultados de búsqueda).
 
-A few resources to get you started if this is your first Flutter project:
+## Arquitectura
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Organización por capas dentro de `lib/features/characters/`:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `data/` — modelos, datasource remoto (Dio) y repositorio.
+- `domain/` — entidad `Character`, contrato del repositorio y use cases.
+- `presentation/` — providers de **Riverpod 3** (estado de la lista, búsqueda y detalle) y las pantallas.
+
+El manejo de errores usa un tipo `Result<T>` (`Success`/`Failure`) en `core/error/`, evitando exponer excepciones directamente a la UI.
+
+## Cómo ejecutar
+
+```bash
+flutter pub get
+flutter run
+```
