@@ -1,13 +1,8 @@
-sealed class Result<T> {
-  const Result();
-}
+part 'success.dart';
+part 'failure.dart';
 
-final class Success<T> extends Result<T> {
-  const Success(this.value);
-  final T value;
-}
-
-final class Failure<T> extends Result<T> {
-  const Failure(this.message);
-  final String message;
+/// Resultado de una operacion, puede ser [RmSuccess] o [RmFailure]
+/// Se usa en vez de excepciones para obligar a manejar ambos casos
+sealed class RmResult<T> {
+  const RmResult();
 }
