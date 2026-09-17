@@ -1,16 +1,21 @@
 import 'package:equatable/equatable.dart';
 
-class Character extends Equatable {
+import 'character_species.dart';
+import 'character_status.dart';
+
+/// Representa un personaje de rick and morty en la capa de dominio, con los
+/// datos ya normalizados (independiente del formato JSON de la API)
+class RmCharacterEntity extends Equatable {
   final int id;
   final String name;
-  final String status;
-  final String species;
+  final RmCharacterStatus status;
+  final RmCharacterSpecies species;
   final String gender;
   final String origin;
   final String location;
   final String image;
 
-  const Character({
+  const RmCharacterEntity({
     required this.id,
     required this.name,
     required this.status,

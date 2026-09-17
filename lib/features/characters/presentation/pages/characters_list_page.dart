@@ -1,41 +1,26 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/character_entity.dart';
-import '../providers/characters_providers.dart';
+import '../../domain/domain.dart';
+import '../providers/characters_notifier.dart';
 import 'character_detail_page.dart';
 
-class CharactersListPage extends ConsumerStatefulWidget {
-  const CharactersListPage({super.key});
+class RmCharactersListPage extends ConsumerStatefulWidget {
+  const RmCharactersListPage({super.key});
 
   @override
-  ConsumerState<CharactersListPage> createState() => _CharactersListPageState();
+  ConsumerState<RmCharactersListPage> createState() =>
+      _RmCharactersListPageState();
 }
 
-class _CharactersListPageState extends ConsumerState<CharactersListPage> {
+class _RmCharactersListPageState extends ConsumerState<RmCharactersListPage> {
   static const _loadMoreThreshold = 300.0;
 
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   Timer? _debounce;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    _debounce?.cancel();
-    _searchController.dispose();
-    super.dispose();
-  }
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
@@ -50,6 +35,21 @@ class _CharactersListPageState extends ConsumerState<CharactersListPage> {
     _debounce = Timer(const Duration(milliseconds: 400), () {
       ref.read(characterSearchQueryProvider.notifier).update(value.trim());
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -75,10 +75,11 @@ class _CharactersListPageState extends ConsumerState<CharactersListPage> {
           Expanded(
             child: charactersAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => _CharactersErrorView(message: error.toString()),
+              error: (error, _) =>
+                  _RmCharactersErrorView(message: error.toString()),
               data: (state) => state.characters.isEmpty
-                  ? const _CharactersEmptyView()
-                  : _CharactersListView(
+                  ? const _RmCharactersEmptyView()
+                  : _RmCharactersListView(
                       characters: state.characters,
                       isLoadingMore: state.isLoadingMore,
                       scrollController: _scrollController,
@@ -91,14 +92,14 @@ class _CharactersListPageState extends ConsumerState<CharactersListPage> {
   }
 }
 
-class _CharactersListView extends StatelessWidget {
-  const _CharactersListView({
+class _RmCharactersListView extends StatelessWidget {
+  const _RmCharactersListView({
     required this.characters,
     required this.isLoadingMore,
     required this.scrollController,
   });
 
-  final List<Character> characters;
+  final List<RmCharacterEntity> characters;
   final bool isLoadingMore;
   final ScrollController scrollController;
 
@@ -116,15 +117,23 @@ class _CharactersListView extends StatelessWidget {
         }
 
         final character = characters[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: CachedNetworkImageProvider(character.image),
-          ),
-          title: Text(character.name),
-          subtitle: Text('${character.status} · ${character.species}'),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => CharacterDetailPage(characterId: character.id),
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(8),
+            leading: CircleAvatar(
+              radius: 28,
+              backgroundImage: NetworkImage(character.image),
+            ),
+            title: Text(character.name),
+            subtitle: Text(
+              '${character.status.name} · ${character.species.name}',
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) =>
+                    RmCharacterDetailPage(characterId: character.id),
+              ),
             ),
           ),
         );
@@ -133,8 +142,8 @@ class _CharactersListView extends StatelessWidget {
   }
 }
 
-class _CharactersEmptyView extends StatelessWidget {
-  const _CharactersEmptyView();
+class _RmCharactersEmptyView extends StatelessWidget {
+  const _RmCharactersEmptyView();
 
   @override
   Widget build(BuildContext context) {
@@ -142,8 +151,8 @@ class _CharactersEmptyView extends StatelessWidget {
   }
 }
 
-class _CharactersErrorView extends StatelessWidget {
-  const _CharactersErrorView({required this.message});
+class _RmCharactersErrorView extends StatelessWidget {
+  const _RmCharactersErrorView({required this.message});
 
   final String message;
 

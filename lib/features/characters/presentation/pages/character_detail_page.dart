@@ -1,12 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/character_entity.dart';
-import '../providers/characters_providers.dart';
+import '../../domain/domain.dart';
+import '../providers/characters_notifier.dart';
 
-class CharacterDetailPage extends ConsumerWidget {
-  const CharacterDetailPage({super.key, required this.characterId});
+class RmCharacterDetailPage extends ConsumerWidget {
+  const RmCharacterDetailPage({super.key, required this.characterId});
 
   final int characterId;
 
@@ -38,35 +37,38 @@ class CharacterDetailPage extends ConsumerWidget {
             ],
           ),
         ),
-        data: (character) => _CharacterDetailView(character: character),
+        data: (character) => _RmCharacterDetailView(character: character),
       ),
     );
   }
 }
 
-class _CharacterDetailView extends StatelessWidget {
-  const _CharacterDetailView({required this.character});
+class _RmCharacterDetailView extends StatelessWidget {
+  const _RmCharacterDetailView({required this.character});
 
-  final Character character;
+  final RmCharacterEntity character;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: CachedNetworkImage(
-            imageUrl: character.image,
-            height: 240,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => const SizedBox(
+        Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: 240,
               height: 240,
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            errorWidget: (context, url, error) => const SizedBox(
-              height: 240,
-              child: Center(child: Icon(Icons.broken_image_outlined)),
+              child: Image.network(
+                character.image,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+                errorBuilder: (context, error, stackTrace) =>
+                    const Center(child: Icon(Icons.broken_image_outlined)),
+              ),
             ),
           ),
         ),
@@ -78,28 +80,28 @@ class _CharacterDetailView extends StatelessWidget {
             Icon(
               Icons.circle,
               size: 12,
-              color: switch (character.status.toLowerCase()) {
-                'alive' => Colors.green,
-                'dead' => Colors.red,
-                _ => Colors.grey,
+              color: switch (character.status) {
+                RmCharacterStatus.alive => Colors.green,
+                RmCharacterStatus.dead => Colors.red,
+                RmCharacterStatus.unknown => Colors.grey,
               },
             ),
             const SizedBox(width: 6),
-            Text('${character.status} · ${character.species}'),
+            Text('${character.status.name} · ${character.species.name}'),
           ],
         ),
         const Divider(height: 32),
-        _DetailRow(label: 'Género', value: character.gender),
-        _DetailRow(label: 'Origen', value: character.origin),
-        _DetailRow(label: 'Última ubicación', value: character.location),
-        _DetailRow(label: 'ID', value: character.id.toString()),
+        _RmDetailRow(label: 'Género', value: character.gender),
+        _RmDetailRow(label: 'Origen', value: character.origin),
+        _RmDetailRow(label: 'Última ubicación', value: character.location),
+        _RmDetailRow(label: 'ID', value: character.id.toString()),
       ],
     );
   }
 }
 
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({required this.label, required this.value});
+class _RmDetailRow extends StatelessWidget {
+  const _RmDetailRow({required this.label, required this.value});
 
   final String label;
   final String value;
